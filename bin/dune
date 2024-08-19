@@ -1,0 +1,4 @@
+(executable
+ (public_name ctfp)
+ (name main)
+ (libraries ctfp core core_unix))
