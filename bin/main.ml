@@ -27,7 +27,8 @@ let composition_respects_id () =
   let f = (+) (Random.int Int.max_value) in
   let x = Random.int Int.max_value in
   assert (f x = (f ||| id) x) ;
-  assert (f x = (id ||| f) x)
+  assert (f x = (id ||| f) x) ;
+  Printf.printf "passing\n"
 
 (******************************************************************************)
 (* CHAPTER 2                                                                  *)
@@ -58,3 +59,55 @@ let _ =
   let _tt   (_ : bool) = true   in
   let _ff   (_ : bool) = false  in
   ()
+
+(******************************************************************************)
+(* CHAPTER 4                                                                  *)
+(******************************************************************************)
+
+module type FOUR = sig
+
+  type ('a, 'b) partial = 'a -> 'b option
+  type binop = (float, float) partial
+
+  val compose : ('b, 'c) partial -> ('a, 'b) partial -> ('a, 'c) partial
+
+  val reciprocal      : binop
+  val root            : binop
+  val root_reciprocal : binop
+
+end
+
+module Four : FOUR = struct
+
+  type ('a, 'b) partial = 'a -> 'b option
+  type binop = (float, float) partial
+
+  let (=) = Float.(=)
+  let (<) = Float.(<)
+  let (/) = Float.(/)
+
+  let compose g f x =
+    match (f x) with
+    | Some r  -> g r
+    | None    -> None
+
+  let reciprocal x =
+    match x = 0.0 with
+    | true  -> None
+    | false -> Some (1.0 / x)
+
+  let root x =
+    match x < 0.0 with
+    | true  -> None
+    | false -> Some (sqrt x)
+
+  let root_reciprocal = compose root reciprocal
+
+  let test_chapter_four () =
+    let (=) = Option.equal Float.equal in
+    assert (root_reciprocal 0.0           = None    ) ;
+    assert (root_reciprocal (0.0 -. 4.0)  = None    ) ;
+    assert (root_reciprocal (1.0 /. 4.0)  = Some 2.0) ;
+    Printf.printf "passing\n"
+
+end
